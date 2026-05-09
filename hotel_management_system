@@ -1,0 +1,1836 @@
+import tkinter as tk
+from tkinter import ttk
+from PIL import Image, ImageTk
+import ttkbootstrap as tb
+from tkinter import messagebox
+import os
+import re
+
+
+
+# Color scheme
+BG_COLOR = '#8a928d'
+NAV_COLOR = 'white'
+BTN_COLOR = 'white'
+BOOK_NOW_COLOR = 'yellow'
+TEXT_COLOR = 'black'
+ACCENT_COLOR = '#d4af37'
+
+# Splash fade-out function
+def _go_to_main_window():
+    for i in range(10):
+        splash.attributes('-alpha', 1 - i * 0.1)# the fade out effect it will be like i- 1*0.1 it slightly runs out with its opaqueness
+        splash.update()
+        splash.after(50)# 50 miliseconds
+    splash.destroy()
+    show_main_window()
+
+
+# Dropdown menu function
+def create_services_dropdown(button):
+    # Common font style
+    menu_font = ('Arial', 14, 'bold')
+
+    # Main dropdown menu
+    dropdown = tk.Menu(button, tearoff=0, bg='white', fg='black', font=menu_font, activebackground='#f0f0f0',
+                       activeforeground='blue')
+
+    # Submenu for "Meetings & Events"
+    meetings_menu = tk.Menu(dropdown, tearoff=0, bg='white', fg='black', font=menu_font, activebackground='#f0f0f0',
+                            activeforeground='blue')
+    meetings_menu.add_command(label="Wedding", command=open_wedding_window)
+    meetings_menu.add_command(label="Birthday", command=open_birthday_window)
+    meetings_menu.add_command(label="Board Room", command=open_board_room_window)
+
+    # Add submenu cascade and other options
+    dropdown.add_cascade(label="Meetings & Events", menu=meetings_menu)
+    dropdown.add_command(label="Restaurant", command=open_Restraunt)
+    dropdown.add_command(label="Laundry", command=open_laundary)
+
+    # Position dropdown under the button
+    x = button.winfo_rootx()
+    y = button.winfo_rooty() + button.winfo_height()
+    dropdown.post(x, y)
+    return dropdown
+#========================================================WEDDING========================================================================
+#wedding window 
+def open_wedding_window():
+    wedding = tb.Toplevel()
+    wedding.title("Wedding Services")
+    wedding.state('zoomed')
+
+    # Load background image
+    bg_path = r"C:\Users\User\OneDrive\Pictures\project\\wedds.png"
+    bg_image = Image.open(bg_path)
+    screen_width = wedding.winfo_screenwidth()
+    screen_height = wedding.winfo_screenheight()
+    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
+    bg_photo = ImageTk.PhotoImage(bg_image)
+
+    bg_label = tk.Label(wedding, image=bg_photo)
+    bg_label.image = bg_photo
+    bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+    # Navbar Frame
+    navbar = tk.Frame(wedding, bg='white')
+    navbar.place(relx=0, rely=0, relwidth=1)
+
+    # Navigation Buttons
+    # ====== ADDED THIS FUNCTION FOR FRAME SWITCHING ======
+    def show_frame(frame):
+        for f in ( about_content, book_content):
+            f.place_forget()
+        frame.place(relx=0.3, rely=0.2, relwidth=0.6, relheight=0.7)
+
+    # ====== CREATE CONTENT FRAMES ======
+    about_content = tk.Frame(wedding, bg='white')
+    book_content = tk.Frame(wedding, bg='white')
+
+    # NAVIGation
+    ttk.Button(navbar, text="ABOUT US", command=open_about_us_window).pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="BOOK NOW 🔔", command=open_booking_window).pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="03234324254📞").pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="platinum.court@gmail.com").pack(side='left', padx=10, pady=10)
+
+    # Dropdown Menu with simulated nested submenu
+    def show_dropdown(event):
+        menu = tk.Menu(navbar, tearoff=0, bg='white', fg='black')
+
+        # Submenu for "Meetings and Events"
+        sub_menu = tk.Menu(menu, tearoff=0, bg='white', fg='black')
+        sub_menu.add_command(label="Birthday", command=open_birthday_window)
+        sub_menu.add_command(label="Board Meeting", command=open_board_room_window)
+        sub_menu.add_command(label="Wedding", command=open_wedding_window)
+
+        menu.add_cascade(label="Meetings and Events", menu=sub_menu)
+        menu.add_command(label="Restaurant", command=open_Restraunt)
+        menu.add_command(label="Laundery", command=open_laundary)
+        
+        menu.post(event.x_root, event.y_root)
+
+    dropdown_btn = ttk.Button(navbar, text="SERVICES")
+    dropdown_btn.pack(side='left', padx=10, pady=10)
+    dropdown_btn.bind("<Button-1>", show_dropdown)
+    title_label = tk.Label(wedding, text="✨ Platinum Courts Weddings ✨", 
+                           font=('Helvetica', 24, 'bold'), bg='white', fg='#a0522d')
+    title_label.place(relx=0.25, rely=0.07)
+            # ===== GALLERY SECTION =====
+
+    # ===== GALLERY SECTION =====
+        
+    # Frame for vertical gallery
+    gallery_frame = tk.Frame(wedding, bg='white', bd=2, relief='ridge')
+    gallery_frame.place(relx=0.1, rely=0.2, relwidth=0.3, relheight=0.6)
+
+    # Gallery title
+    gallery_label = tk.Label(gallery_frame, text="Our Gallery", 
+                        font=('Helvetica', 14, 'bold'), bg='white', fg='#a0522d')
+    gallery_label.pack(pady=10)
+
+    # Vertical scrollbar
+    scrollbar = tk.Scrollbar(gallery_frame, orient='vertical')
+    scrollbar.pack(side='right', fill='y')
+
+    # Canvas for images
+    canvas = tk.Canvas(gallery_frame, bg='white', yscrollcommand=scrollbar.set,
+                    highlightthickness=0)
+    canvas.pack(side='left', fill='both', expand=True)
+    scrollbar.config(command=canvas.yview)
+
+    # Inner frame for images
+    images_frame = tk.Frame(canvas, bg='white')
+    canvas.create_window((0, 0), window=images_frame, anchor='nw')
+
+    # Store photo references
+    wedding.photo_images = []
+
+    # Image data - path, hall name, and price
+    image_data = [
+        {
+            "path": r"C:\Users\User\OneDrive\Pictures\project\wedw.jpg",
+            "hall": "Grand Ballroom",
+            "price": "RS 35,000",
+             "hall code":'W1'
+        },
+        {
+            "path": r"C:\Users\User\OneDrive\Pictures\project\wedp.jpg",
+            "hall": "Royal Palace",
+            "price": "RS 42,000",
+             "hall code":'W2'
+        },
+        {
+            "path": r"C:\Users\User\OneDrive\Pictures\project\wedg.jpg",
+            "hall": "Garden Pavilion",
+            "price": "RS 50,000",
+            "hall code":'W3'
+        }
+    ]
+
+    # Load and display images with hall info
+    for data in image_data:
+        try:
+            # Create a frame for each image and its details
+            item_frame = tk.Frame(images_frame, bg='white')
+            item_frame.pack(pady=10)
+            
+            # Load and display image
+            img = Image.open(data["path"])
+            img = img.resize((500, 550), Image.Resampling.LANCZOS)
+            photo = ImageTk.PhotoImage(img)
+            wedding.photo_images.append(photo)  # Keep reference
+            
+            img_label = tk.Label(item_frame, image=photo, bg='white')
+            img_label.pack()
+            
+            # Add hall name and price below image
+            hall_label = tk.Label(item_frame, text=data["hall"], 
+                                font=('Helvetica', 12, 'bold'), 
+                                bg='white', fg='#a0522d')
+            hall_label.pack()
+            
+            price_label = tk.Label(item_frame, text=f"Price: {data['price']}", 
+                                font=('Helvetica', 10), 
+                                bg='white', fg='#333333')
+            price_label.pack()
+
+            code_label = tk.Label(item_frame, text=f"Hall code: {data['hall code']}",
+                                  font=('Helvetica', 10),
+                                  bg='white', fg='#333333')
+            code_label.pack()
+            
+        except Exception as e:
+            print(f"Error loading image {data['path']}: {str(e)}")
+            error_label = tk.Label(images_frame, 
+                                text=f"Image not found\n{data['path']}",
+                                bg='white', fg='red')
+            error_label.pack(pady=10)
+
+    # Update canvas scroll region
+    images_frame.update_idletasks()
+    canvas.config(scrollregion=canvas.bbox("all"))
+
+#=============================================BIRTHDAY============================================================
+#birthday window:
+def open_birthday_window():
+    birthday = tb.Toplevel()
+    birthday.title("birthday Services")
+    birthday.state('zoomed')
+
+    # Load background image
+    bg_path = r"C:\Users\User\OneDrive\Pictures\project\\bday.png"
+    bg_image = Image.open(bg_path)
+    screen_width = birthday.winfo_screenwidth()
+    screen_height = birthday.winfo_screenheight()
+    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
+    bg_photo = ImageTk.PhotoImage(bg_image)
+
+    bg_label = tk.Label(birthday, image=bg_photo)
+    bg_label.image = bg_photo
+    bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+    # Navbar Frame
+    navbar = tk.Frame(birthday, bg='white')
+    navbar.place(relx=0, rely=0, relwidth=1)
+
+
+    def show_frame(frame):
+        for f in ( about_content, book_content):
+            f.place_forget()
+        frame.place(relx=0.3, rely=0.2, relwidth=0.6, relheight=0.7)
+
+    # ====== CREATE CONTENT FRAMES ======
+    about_content = tk.Frame(birthday, bg='white')
+    book_content = tk.Frame(birthday, bg='white')
+
+ 
+    # NAVIGation
+    ttk.Button(navbar, text="ABOUT US", command=open_about_us_window).pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="BOOK NOW 🔔", command=open_booking_window).pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="03234324254📞").pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="platinum.court@gmail.com").pack(side='left', padx=10, pady=10)
+
+    # Dropdown Menu with simulated nested submenu
+    def show_dropdown(event):
+        menu = tk.Menu(navbar, tearoff=0, bg='white', fg='black')
+
+        # Submenu for "Meetings and Events"
+        sub_menu = tk.Menu(menu, tearoff=0, bg='white', fg='black')
+        sub_menu.add_command(label="Birthday", command=open_birthday_window)
+        sub_menu.add_command(label="Board Meeting", command=open_board_room_window)
+        sub_menu.add_command(label="Wedding", command=open_wedding_window)
+
+        menu.add_cascade(label="Meetings and Events", menu=sub_menu)
+        menu.add_command(label="Restaurant", command=open_Restraunt)
+        menu.add_command(label="Laundery", command=open_laundary)
+        
+        menu.post(event.x_root, event.y_root)
+
+    dropdown_btn = ttk.Button(navbar, text="SERVICES")
+    dropdown_btn.pack(side='left', padx=10, pady=10)
+    dropdown_btn.bind("<Button-1>", show_dropdown)
+    title_label = tk.Label(birthday, text="✨ Platinum Courts Birthday's ", 
+                           font=('Helvetica', 24, 'bold'), bg='white', fg='#a0522d')
+    title_label.place(relx=0.25, rely=0.07)
+
+    # ===== VERTICAL GALLERY SECTION WITH SCROLLBAR =====
+    gallery_frame = tk.Frame(birthday, bg='white', bd=2, relief='ridge')
+    gallery_frame.place(relx=0.05, rely=0.2, relwidth=0.25, relheight=0.7)
+
+    gallery_label = tk.Label(gallery_frame, text="Available Birthday Halls", 
+                        font=('Helvetica', 14, 'bold'), bg='white', fg='#FF69B4')
+    gallery_label.pack(pady=10)
+
+    # Create canvas and scrollbar
+    canvas = tk.Canvas(gallery_frame, bg='white', highlightthickness=0)
+    scrollbar = tk.Scrollbar(gallery_frame, orient='vertical', command=canvas.yview)
+    scrollbar.pack(side='right', fill='y')
+    canvas.pack(side='left', fill='both', expand=True)
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    # Frame to hold the images (inside canvas)
+    images_frame = tk.Frame(canvas, bg='white')
+    canvas.create_window((0, 0), window=images_frame, anchor='nw')
+
+    # Birthday hall data
+    birthday_halls = [
+        {
+            "name": "The Celebration Lounge",
+            "price": "RS 40,000",
+             "hall code":'H1',
+            "path": r"C:\Users\User\OneDrive\Pictures\project\b1.jpg"
+        },
+        {
+            "name": "Golden Glow Hall",
+            "price": "RS 35,000", 
+             "hall code":'H2',
+            "path": r"C:\Users\User\OneDrive\Pictures\project\b5.jpg"
+        },
+        {
+            "name": "Party Planet",
+            "price": "RS 30,000",
+             "hall code":'H3',
+            "path": r"C:\Users\User\OneDrive\Pictures\project\b4.jpg"
+        }
+    ]
+
+    birthday.photo_images = []  # To keep references
+
+    for hall in birthday_halls:
+        hall_frame = tk.Frame(images_frame, bg='white')
+        hall_frame.pack(pady=10)
+
+        try:
+            img = Image.open(hall["path"])
+            img = img.resize((450, 400), Image.Resampling.LANCZOS)
+            photo = ImageTk.PhotoImage(img)
+            birthday.photo_images.append(photo)
+            
+            tk.Label(hall_frame, image=photo, bg='white').pack()
+        except Exception as e:
+            print(f"Error loading image: {e}")
+            tk.Label(hall_frame, text="Image not available", 
+                bg='white', fg='red').pack()
+
+        # Hall code and price
+        tk.Label(hall_frame, text=hall["name"], 
+            font=('Courier New', 12, 'bold'), bg='white', fg='#333333').pack(pady=5)
+        tk.Label(hall_frame, text=f"Price: {hall['price']}", 
+            font=('Helvetica', 11), bg='white', fg='#FF69B4').pack()
+        tk.Label(hall_frame, text=f"Hall Code: {hall['hall code']}",
+                 font=('Helvetica', 11), bg='white', fg='#FF69B4').pack()
+
+    # Update scrollregion after all items are added
+    images_frame.update_idletasks()
+    canvas.config(scrollregion=canvas.bbox("all"))
+
+    # Mousewheel scrolling
+    def _on_mousewheel(event):
+        canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+    canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+#============================================== BOARD EVENT ===================================================================================
+def open_board_room_window():
+    board_room = tb.Toplevel()
+    board_room.title("board event ")
+    board_room.state('zoomed')
+
+    # Load background image
+    bg_path = r"C:\Users\User\OneDrive\Pictures\project\\offc.png"
+    bg_image = Image.open(bg_path)
+    screen_width = board_room.winfo_screenwidth()
+    screen_height = board_room.winfo_screenheight()
+    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
+    bg_photo = ImageTk.PhotoImage(bg_image)
+
+    bg_label = tk.Label(board_room, image=bg_photo)
+    bg_label.image = bg_photo
+    bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+    # Navbar Frame
+    navbar = tk.Frame(board_room, bg='white')
+    navbar.place(relx=0, rely=0, relwidth=1)
+
+    # Navigation Buttons
+    def show_frame(frame):
+        for f in ( about_content, book_content):
+            f.place_forget()
+        frame.place(relx=0.3, rely=0.2, relwidth=0.6, relheight=0.7)
+
+    # ====== CREATE CONTENT FRAMES ======
+    about_content = tk.Frame(board_room, bg='white')
+    book_content = tk.Frame(board_room, bg='white')
+
+    # NAVIGation
+    ttk.Button(navbar, text="ABOUT US", command=open_about_us_window).pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="BOOK NOW 🔔", command=open_booking_window).pack(side='left', padx=10, pady=10)
+    # Dropdown Menu with simulated nested submenu
+    def show_dropdown(event):
+        menu = tk.Menu(navbar, tearoff=0, bg='white', fg='black')
+
+        # Submenu for "Meetings and Events"
+        sub_menu = tk.Menu(menu, tearoff=0, bg='white', fg='black')
+        sub_menu.add_command(label="Birthday", command=open_birthday_window)
+        sub_menu.add_command(label="Board Meeting", command=open_board_room_window)
+        sub_menu.add_command(label="Wedding", command=open_wedding_window)
+
+        menu.add_cascade(label="Meetings and Events", menu=sub_menu)
+        menu.add_command(label="Restaurant", command=open_Restraunt)
+        menu.add_command(label="Laundery", command=open_laundary)
+        
+        menu.post(event.x_root, event.y_root)
+
+    dropdown_btn = ttk.Button(navbar, text="SERVICES")
+    dropdown_btn.pack(side='left', padx=10, pady=10)
+    dropdown_btn.bind("<Button-1>", show_dropdown)
+    title_label = tk.Label(board_room, text="✨ Platinum Courts Board Rooms ", 
+                           font=('Helvetica', 24, 'bold'), bg='white', fg='#a0522d')
+    title_label.place(relx=0.25, rely=0.07)
+
+                           
+
+    # ===== SCROLLABLE GALLERY SECTION =====
+    gallery_frame = tk.Frame(board_room, bg='white', bd=2, relief='ridge')
+    gallery_frame.place(relx=0.05, rely=0.2, relwidth=0.30, relheight=0.7)
+
+    gallery_label = tk.Label(gallery_frame, text="Available Board Rooms", 
+                          font=('Helvetica', 14, 'bold'), bg='white', fg='#4169E1')
+    gallery_label.pack(pady=10)
+
+    # Create canvas and scrollbar
+    canvas = tk.Canvas(gallery_frame, bg='white', highlightthickness=0)
+    scrollbar = tk.Scrollbar(gallery_frame, orient='vertical', command=canvas.yview)
+    scrollbar.pack(side='right', fill='y')
+    canvas.pack(side='left', fill='both', expand=True)
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    # Frame to hold the images (inside canvas)
+    images_frame = tk.Frame(canvas, bg='white')
+    canvas.create_window((0, 0), window=images_frame, anchor='nw')
+
+    # Board room data
+    board_rooms = [
+        {
+            "name": "The Orbit Room",
+            "price": "RS 25,000",
+             "hall code":'B1',
+            "path": r"C:\Users\User\OneDrive\Pictures\project\bm1.jpg"
+        },
+        {
+            "name": "The Summit Room", 
+            "price": "RS 35,000",
+             "hall code":'B2',
+            "path": r"C:\Users\User\OneDrive\Pictures\project\bm2.jpg"
+        },
+        {
+            "name": "Central Point Room",
+            "price": "RS 45,000",
+             "hall code":'B3',
+            "path": r"C:\Users\User\OneDrive\Pictures\project\bm3.jpg"
+             
+        }
+    ]
+
+    board_room.photo_images = []  # To keep references
+
+    for room in board_rooms:
+        room_frame = tk.Frame(images_frame, bg='white')
+        room_frame.pack(pady=15)
+
+        try:
+            img = Image.open(room["path"])
+            img = img.resize((513, 510), Image.Resampling.LANCZOS)  # 400x450 size
+            photo = ImageTk.PhotoImage(img)
+            board_room.photo_images.append(photo)
+            
+            tk.Label(room_frame, image=photo, bg='white').pack()
+        except Exception as e:
+            print(f"Error loading image: {e}")
+            tk.Label(room_frame, text="Image not available", 
+                   bg='white', fg='red').pack()
+
+        # Room code and price
+        tk.Label(room_frame, text=room["name"], 
+               font=('Courier New', 12, 'bold'), bg='white', fg='#333333').pack(pady=5)
+        tk.Label(room_frame, text=f"Price: {room['price']}", 
+               font=('Helvetica', 11), bg='white', fg='#4169E1').pack()
+        tk.Label(room_frame, text=f"Room Code: {room['hall code']}",
+                 font=('Helvetica', 11), bg='white', fg='#4169E1').pack()
+
+    # Update scrollregion after all items are added
+    images_frame.update_idletasks()
+    canvas.config(scrollregion=canvas.bbox("all"))
+
+    # Mousewheel scrolling
+    def _on_mousewheel(event):
+        canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+    canvas.bind_all("<MouseWheel>", _on_mousewheel)
+#======================================== RESTRAUNT==========================================================================
+def open_Restraunt():
+    rest = tb.Toplevel()
+    rest.title("RESTRAUNT ")
+    rest.state('zoomed')
+
+    # Load background image
+    bg_path = r"C:\Users\User\OneDrive\Pictures\project\\1.png"
+    bg_image = Image.open(bg_path)
+    screen_width = rest.winfo_screenwidth()
+    screen_height = rest.winfo_screenheight()
+    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
+    bg_photo = ImageTk.PhotoImage(bg_image)
+
+    bg_label = tk.Label(rest, image=bg_photo)
+    bg_label.image = bg_photo
+    bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+    # Navbar Frame
+    navbar = tk.Frame(rest, bg='white')
+    navbar.place(relx=0, rely=0, relwidth=1)
+
+    def show_frame(frame):
+        for f in ( about_content, email_content):
+            f.place_forget()
+        frame.place(relx=0.3, rely=0.2, relwidth=0.6, relheight=0.7)
+
+    # ====== CREATE CONTENT FRAMES ======
+    about_content = tk.Frame(rest, bg='white')
+    email_content = tk.Frame(rest, bg='white')
+
+    # NAVIGation
+    ttk.Button(navbar, text="ABOUT US", command=open_about_us_window).pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="cafedebraus@gmail.com").pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="0322841241").pack(side='left', padx=10, pady=10)
+    # Dropdown Menu with simulated nested submenu
+    def show_dropdown(event):
+        menu = tk.Menu(navbar, tearoff=0, bg='white', fg='black')
+
+        # Submenu for "Meetings and Events"
+        sub_menu = tk.Menu(menu, tearoff=0, bg='white', fg='black')
+        sub_menu.add_command(label="Birthday", command=open_birthday_window)
+        sub_menu.add_command(label="Board Meeting", command=open_board_room_window)
+        sub_menu.add_command(label="Wedding", command=open_wedding_window)
+
+        menu.add_cascade(label="Meetings and Events", menu=sub_menu)
+        menu.add_command(label="Restaurant", command=open_Restraunt)
+        menu.add_command(label="Laundery", command=open_laundary)
+        
+        menu.post(event.x_root, event.y_root)
+
+    dropdown_btn = ttk.Button(navbar, text="SERVICES")
+    dropdown_btn.pack(side='left', padx=10, pady=10)
+    dropdown_btn.bind("<Button-1>", show_dropdown)
+    title_label = tk.Label(rest, text="✨ Platinum Courts Restraunt ", 
+                           font=('Helvetica', 24, 'bold'), bg='white', fg='#a0522d')
+    title_label.place(relx=0.25, rely=0.07)
+
+    # ===== SINGLE LINE TIMING INFO =====
+    info_frame = tk.Frame(rest, bg='white')
+    info_frame.place(relx=0.25, rely=0.15, relwidth=0.6, height=30)
+
+    # Create the single line text with separators
+    info_text = "   |   ".join([
+        "OPENING DAYS: Monday - Sunday",
+        "OPENING HOURS: 06:00 AM - 10:30 PM",
+        "CUISINE: Pakistani-Chinese-Continental"
+    ])
+
+    tk.Label(info_frame, 
+             text=info_text,
+             font=('Helvetica', 9),  # Smaller font size
+             bg='white').pack()
+     # ===== IMAGE SLIDER =====
+    slider_frame = tk.Frame(rest, bg='white', bd=2, relief='groove')
+    slider_frame.place(relx=0.25, rely=0.2, relwidth=0.5, relheight=0.5)
+    
+    # Create a list of image paths (replace with your actual image paths)
+    image_paths = [
+        r"C:\Users\User\OneDrive\Pictures\project\2.png",
+        r"C:\Users\User\OneDrive\Pictures\project\3.png",
+        r"C:\Users\User\OneDrive\Pictures\project\4.png",
+        r"C:\Users\User\OneDrive\Pictures\project\5png",
+        r"C:\Users\User\OneDrive\Pictures\project\6.png"
+    ]
+    
+    # Load and resize images to portrait orientation
+    images = []
+    for path in image_paths:
+        try:
+            img = Image.open(path)
+            # Resize to portrait (adjust dimensions as needed)
+            img = img.resize((400, 500), Image.Resampling.LANCZOS)
+            photo = ImageTk.PhotoImage(img)
+            images.append(photo)
+        except Exception as e:
+            print(f"Error loading image {path}: {e}")
+            # Add a placeholder if image fails to load
+            placeholder = Image.new('RGB', (400, 500), color='gray')
+            photo = ImageTk.PhotoImage(placeholder)
+            images.append(photo)
+    
+    # Create label to display images
+    img_label = tk.Label(slider_frame)
+    img_label.pack(pady=10)
+    
+    # Navigation buttons
+    nav_frame = tk.Frame(slider_frame, bg='white')
+    nav_frame.pack(pady=5)
+    
+    current_img = 0
+    
+    def update_image():
+        img_label.config(image=images[current_img])
+    
+    def next_image():
+        nonlocal current_img
+        current_img = (current_img + 1) % len(images)
+        update_image()
+    
+    def prev_image():
+        nonlocal current_img
+        current_img = (current_img - 1) % len(images)
+        update_image()
+    
+    # Navigation buttons
+    prev_btn = ttk.Button(nav_frame, text="◀ Previous", command=prev_image)
+    prev_btn.pack(side='left', padx=10)
+    
+    next_btn = ttk.Button(nav_frame, text="Next ▶", command=next_image)
+    next_btn.pack(side='left', padx=10)
+    
+    # Auto-slide functionality
+    def auto_slide():
+        next_image()
+        rest.after(2000, auto_slide)  # Change image every 3 seconds
+    
+    # Start with first image
+    update_image()
+    
+    # Start auto-sliding
+    rest.after(2000, auto_slide)
+
+
+        # ===== BUFFET MENU SECTION =====
+    menu_frame = tk.Frame(rest, bg='white', bd=2, relief='groove')
+    menu_frame.place(relx=0.25, rely=0.72, relwidth=0.5, relheight=0.25)
+
+    # Buffet Menu Items
+    buffet_items = [
+        {"name": "Buffet Breakfast", "price": "1500", "timing": "6:30 AM - 10:30 AM"},
+        {"name": "Buffet Lunch", "price": "2449", "timing": "12:30 PM - 2:00 PM"},
+        {"name": "Buffet Hi-Tea", "price": "1899", "timing": "4:30 PM - 7:00 PM"},
+        {"name": "Buffet Dinner", "price": "2449", "timing": "08:00 PM - 10:00 PM"}
+    ]
+
+    # Create menu items
+    for i, item in enumerate(buffet_items):
+        item_frame = tk.Frame(menu_frame, bg='white')
+        item_frame.grid(row=0, column=i, padx=10, pady=10)
+
+        # Item name
+        tk.Label(item_frame, text=item["name"], 
+                font=('Helvetica', 14, 'bold'), bg='white').pack()
+
+        # Price
+        tk.Label(item_frame, text=f"Rs {item['price']}", 
+                font=('Helvetica', 16, 'bold'), bg='white', fg='#a0522d').pack()
+
+        # Timing
+        tk.Label(item_frame, text=f"Cafe De Brando\n{item['timing']}", 
+                font=('Helvetica', 12), bg='white').pack()
+    # ===== TABLE RESERVATION BUTTON =====
+    reservation_btn = ttk.Button(
+        rest, 
+        text="📅 TABLE RESERVATIONS", 
+        command=lambda: open_reservation_window(rest),
+        style='Large.TButton'
+    )
+    style = ttk.Style()
+    style.configure('Large.TButton', 
+                font=('Helvetica', 14, 'bold'), 
+                padding=10,
+                foreground='white',
+                background='#a0522d')  # Brown color
+    reservation_btn.place(relx=0.35, rely=0.65, width=300, height=50)
+
+    def open_reservation_window(parent):
+        reservation_win = tb.Toplevel(parent)
+        reservation_win.title("Buffet Reservation")
+        reservation_win.geometry("700x600")  # Adjusted window size
+        reservation_win.resizable(False, False)
+        reservation_win.configure(bg='white')
+        
+        # Main container
+        main_frame = tk.Frame(reservation_win, bg='white', padx=40, pady=30)
+        main_frame.pack(fill='both', expand=True)
+        
+        # Name Section
+        tk.Label(main_frame, 
+                text="NAME", 
+                font=('Helvetica', 12, 'bold'), 
+                bg='white').grid(row=0, column=0, sticky='w', pady=(0, 5))
+        
+        name_frame = tk.Frame(main_frame, bg='white')
+        name_frame.grid(row=1, column=0, sticky='ew', pady=(0, 15))
+        
+        first_name = ttk.Entry(name_frame, width=15, font=('Helvetica', 12))
+        first_name.pack(side='left', padx=(0, 10))
+        first_name.insert(0, "First")
+        
+        last_name = ttk.Entry(name_frame, width=15, font=('Helvetica', 12))
+        last_name.pack(side='left')
+        last_name.insert(0, "Last")
+        
+        # Contact Info
+        tk.Label(main_frame, 
+                text="PHONE NUMBER", 
+                font=('Helvetica', 12, 'bold'), 
+                bg='white').grid(row=2, column=0, sticky='w', pady=(10, 5))
+        
+        phone_entry = ttk.Entry(main_frame, font=('Helvetica', 12))
+        phone_entry.grid(row=3, column=0, sticky='ew', pady=(0, 15))
+        
+        tk.Label(main_frame, 
+                text="EMAIL", 
+                font=('Helvetica', 12, 'bold'), 
+                bg='white').grid(row=4, column=0, sticky='w', pady=(10, 5))
+        
+        email_entry = ttk.Entry(main_frame, font=('Helvetica', 12))
+        email_entry.grid(row=5, column=0, sticky='ew', pady=(0, 15))
+        
+        # Buffet Selection Section - BUTTONS IN ONE LINE
+        tk.Label(main_frame, 
+                text="SELECT YOUR BUFFET", 
+                font=('Helvetica', 12, 'bold'), 
+                bg='white').grid(row=6, column=0, sticky='w', pady=(10, 5))
+        
+        buffet_frame = tk.Frame(main_frame, bg='white')
+        buffet_frame.grid(row=7, column=0, sticky='ew', pady=(0, 15))
+        
+        selected_buffet = tk.StringVar(value="Breakfast")
+        
+        buffet_options = [
+            ("Breakfast", "#f5f5dc"),
+            ("Lunch", "#ffcccb"),
+            ("Hi-Tea", "#e6e6fa"),
+            ("Dinner", "#d8bfd8")
+        ]
+        
+        for text, color in buffet_options:
+            btn = tk.Radiobutton(
+                buffet_frame,
+                text=text,
+                variable=selected_buffet,
+                value=text,
+                font=('Helvetica', 11),
+                bg=color,
+                activebackground=color,
+                selectcolor=color,
+                indicatoron=0,
+                width=10,
+                height=1,
+                bd=2,
+                relief='ridge'
+            )
+            btn.pack(side='left', padx=5, pady=5)
+        
+        # Number of Guests
+        tk.Label(main_frame, 
+                text="NUMBER OF GUESTS (MAX 40)", 
+                font=('Helvetica', 12, 'bold'), 
+                bg='white').grid(row=8, column=0, sticky='w', pady=(10, 5))
+        
+        guests_frame = tk.Frame(main_frame, bg='white')
+        guests_frame.grid(row=9, column=0, sticky='w', pady=(0, 20))
+        
+        guests_var = tk.IntVar(value=2)
+        
+        ttk.Button(guests_frame, 
+                text="-", 
+                width=3,
+                command=lambda: guests_var.set(max(1, guests_var.get()-1))
+        ).pack(side='left')
+        
+        tk.Label(guests_frame, 
+                textvariable=guests_var, 
+                font=('Helvetica', 12),
+                width=4,
+                bg='white').pack(side='left')
+        
+        ttk.Button(guests_frame, 
+                text="+", 
+                width=3,
+                command=lambda: guests_var.set(min(40, guests_var.get()+1))
+        ).pack(side='left')
+        
+        # Submit Button
+        submit_btn = ttk.Button(
+            main_frame, 
+            text="CONFIRM RESERVATION", 
+            style='Large.TButton',
+            command=lambda: submit_reservation(
+                first_name.get(),
+                last_name.get(),
+                phone_entry.get(),
+                email_entry.get(),
+                selected_buffet.get(),
+                guests_var.get(),
+                reservation_win
+            )
+        )
+        submit_btn.grid(row=10, column=0, sticky='ew', pady=(20, 0))   
+
+
+
+    def show_receipt( first, last, phone, email, buffet, guests, window):
+        popup = tk.Toplevel()
+        popup.geometry("550x800")
+        popup.title("Reservation Receipt")
+
+        # Attempt to show background/logo image
+        try:
+            image_path = os.path.join(os.getcwd(), r"C:\Users\User\OneDrive\Pictures\project\\logo.jpg")  # Change this to your logo image
+            logo_img = Image.open(image_path).resize((300, 250))
+            logo_photo = ImageTk.PhotoImage(logo_img)
+            logo_label = tk.Label(popup, image=logo_photo)
+            logo_label.image = logo_photo  # Prevent garbage collection
+            logo_label.pack(pady=(10, 0))
+        except Exception as e:
+            tk.Label(popup, text="Logo Image Missing", font=("Arial", 20), bg="lightgray").pack(pady=20)
+
+        receipt_frame = tk.Frame(popup, bg="white", padx=20, pady=20)
+        receipt_frame.pack(fill="both", expand=True, pady=(10, 0))
+
+        # Receipt Text
+        receipt_text = f"""
+                 --- PLATINUM COURT RECEIPT ---
+
+                    Name: {first} {last}
+                    Phone: {phone}
+                    Email: {email}
+                    Buffet: {buffet}
+                    Guests: {guests}
+                                   
+                ------------------------------
+                                    """
+
+        tk.Label(receipt_frame, text=receipt_text, font=("Segoe UI", 11), bg="white", justify="left", anchor="w").pack(anchor="w")
+
+
+
+    def submit_reservation(first, last, phone, email, buffet, guests, window):
+        if not all([first.strip(), last.strip(), phone.strip(), email.strip()]):
+            tk.messagebox.showerror("Missing Info", "Please fill out all fields.")
+            return
+
+        show_receipt(first, last, phone, email, buffet, guests, window)
+        window.destroy()  # Close the reservation form after submission
+
+
+
+
+
+    rest.mainloop()
+
+
+
+
+    #=======================================LAUNDARY===========================================================================================
+                           
+def open_laundary():
+    laund = tb.Toplevel()
+    laund.title("LAUNDARY ")
+    laund.state('zoomed')
+
+    # Load background image
+    bg_path = r"C:\Users\User\OneDrive\Pictures\project\\LAUND.jpg"
+    bg_image = Image.open(bg_path)
+    screen_width = laund.winfo_screenwidth()
+    screen_height = laund.winfo_screenheight()
+    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
+    bg_photo = ImageTk.PhotoImage(bg_image)
+
+    bg_label = tk.Label(laund, image=bg_photo)
+    bg_label.image = bg_photo
+    bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+    # Navbar Frame
+    navbar = tk.Frame(laund, bg='white')
+    navbar.place(relx=0, rely=0, relwidth=1)
+
+    # Navigation Buttons
+    def show_frame(frame):
+        for f in ( about_content, book_content):
+            f.place_forget()
+        frame.place(relx=0.3, rely=0.2, relwidth=0.6, relheight=0.7)
+
+    # ====== CREATE CONTENT FRAMES ======
+    about_content = tk.Frame(laund, bg='white')
+    book_content = tk.Frame(laund, bg='white')
+
+    # NAVIGation
+    ttk.Button(navbar, text="ABOUT US", command=open_about_us_window).pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="BOOK NOW 🔔", command=open_booking_window).pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="03234324254📞").pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="platinum.court@gmail.com").pack(side='left', padx=10, pady=10)
+
+
+    # Dropdown Menu with simulated nested submenu
+    def show_dropdown(event):
+        menu = tk.Menu(navbar, tearoff=0, bg='white', fg='black')
+
+        # Submenu for "Meetings and Events"
+        sub_menu = tk.Menu(menu, tearoff=0, bg='white', fg='black')
+        sub_menu.add_command(label="Birthday", command=open_birthday_window)
+        sub_menu.add_command(label="Board Meeting", command=open_board_room_window)
+        sub_menu.add_command(label="Wedding", command=open_wedding_window)
+
+        menu.add_cascade(label="Meetings and Events", menu=sub_menu)
+        menu.add_command(label="Restaurant", command=open_Restraunt)
+        menu.add_command(label="Laundery", command=open_laundary)
+        
+        menu.post(event.x_root, event.y_root)
+
+    dropdown_btn = ttk.Button(navbar, text="SERVICES")
+    dropdown_btn.pack(side='left', padx=10, pady=10)
+    dropdown_btn.bind("<Button-1>", show_dropdown)
+    title_label = tk.Label(laund, text="✨ Platinum Courts LAUNDRY", 
+                           font=('Helvetica', 24, 'bold'), bg='white', fg='#a0522d')
+    title_label.place(relx=0.25, rely=0.07)
+     # Laundry Content Frame
+    content_frame = tk.Frame(laund, bg='white', bd=2, relief='groove')
+    content_frame.place(relx=0.5, rely=0.5, anchor='center', width=600, height=500)
+    
+    # Laundry Text
+    laundry_text = """Laundry
+
+Services:
+• Laundry
+• Ironing
+• Dry Cleaning"""
+    
+    text_label = tk.Label(content_frame, text=laundry_text, 
+                        font=('Helvetica', 14), bg='white', justify='left')
+    text_label.pack(pady=20, padx=20, anchor='w')
+    
+    # Laundry Image
+    try:
+        laundry_img = Image.open(r"C:\Users\User\OneDrive\Pictures\project\L.jpg")  
+        laundry_img = laundry_img.resize((500, 400), Image.Resampling.LANCZOS)
+        laundry_photo = ImageTk.PhotoImage(laundry_img)
+        img_label = tk.Label(content_frame, image=laundry_photo, bg='white')
+        img_label.image = laundry_photo
+        img_label.pack(pady=10)
+    except:
+        pass  # Skip if image not found
+     # Email Booking Section (outside white panel)
+    booking_frame = tk.Frame(laund, bg='#f0f0f0')
+    booking_frame.place(relx=0.5, rely=0.75, anchor='center')
+    
+    tk.Label(booking_frame, text="Enter Email to Book:", 
+            font=('Helvetica', 12)).pack(side='left', padx=5)
+    
+    email_entry = ttk.Entry(booking_frame, width=30)
+    email_entry.pack(side='left', padx=5)
+    
+    def submit_email():
+        email = email_entry.get()
+        if "@" in email and "." in email:
+            messagebox.showinfo("Success", "Booking request received! We'll contact you soon.")
+        else:
+            messagebox.showerror("Error", "Please enter a valid email address")
+    
+    ttk.Button(booking_frame, text="SUBMIT", command=submit_email, 
+              style='Accent.TButton').pack(side='left', padx=10)
+    
+    # Style configuration for the submit button
+    style = ttk.Style()
+    style.configure('Accent.TButton', font=('Helvetica', 10, 'bold'), 
+                  foreground='white', background='#4CAF50')
+    
+
+
+
+
+    
+#==============================================ROOMS======================================================================================
+
+def open_rooms_window():
+    rooms = tb.Toplevel()
+    rooms.title("ROOMS ")
+    rooms.state('zoomed')
+
+    # Load background image
+    bg_path = r"C:\Users\User\OneDrive\Pictures\project\\room.png"
+    bg_image = Image.open(bg_path)
+    screen_width = rooms.winfo_screenwidth()
+    screen_height = rooms.winfo_screenheight()
+    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
+    bg_photo = ImageTk.PhotoImage(bg_image)
+
+    bg_label = tk.Label(rooms, image=bg_photo)
+    bg_label.image = bg_photo
+    bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+    # Navbar Frame
+    navbar = tk.Frame(rooms, bg='white')
+    navbar.place(relx=0, rely=0, relwidth=1)
+    def show_frame(frame):
+        for f in ( about_content, book_content):
+            f.place_forget()
+        frame.place(relx=0.3, rely=0.2, relwidth=0.6, relheight=0.7)
+
+    # ====== CREATE CONTENT FRAMES ======
+    about_content = tk.Frame(rooms, bg='white')
+    book_content = tk.Frame(rooms, bg='white')
+
+    # NAVIGation
+    ttk.Button(navbar, text="ABOUT US", command=open_about_us_window).pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="BOOK NOW 🔔", command=open_booking_window).pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="03234324254📞").pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="platinum.court@gmail.com").pack(side='left', padx=10, pady=10)
+
+
+    # Dropdown Menu with simulated nested submenu
+    def show_dropdown(event):
+        menu = tk.Menu(navbar, tearoff=0, bg='white', fg='black')
+
+        # Submenu for "Meetings and Events"
+        sub_menu = tk.Menu(menu, tearoff=0, bg='white', fg='black')
+        sub_menu.add_command(label="Birthday", command=open_birthday_window)
+        sub_menu.add_command(label="Board Meeting", command=open_board_room_window)
+        sub_menu.add_command(label="Wedding", command=open_wedding_window)
+
+        menu.add_cascade(label="Meetings and Events", menu=sub_menu)
+        menu.add_command(label="Restaurant", command=open_Restraunt)
+        menu.add_command(label="Laundery", command=open_laundary)
+        
+        menu.post(event.x_root, event.y_root)
+
+    dropdown_btn = ttk.Button(navbar, text="SERVICES")
+    dropdown_btn.pack(side='left', padx=10, pady=10)
+    dropdown_btn.bind("<Button-1>", show_dropdown)
+    title_label = tk.Label(rooms, text=" Platinum Courts Rooms", 
+                           font=('Helvetica', 28, 'bold'), bg='white', fg='#a0522d')
+    title_label.place(relx=0.25, rely=0.07)
+    gallery_container = tk.Frame(rooms, bg='white')
+    gallery_container.place(relx=0.1, rely=0.2, relwidth=0.8, relheight=0.8)
+
+    # Enhanced room data with full details
+    room_data = [
+        {
+            "image": r"C:\Users\User\OneDrive\Pictures\project\bed1.jpg",
+            "name": "Sapphire Suite",
+            "code": "R1",
+            "beds": 1,
+            "baths": 1,
+            "price": "RS 4800",
+            "description": "A serene, jewel-toned sanctuary with city views"
+        },
+        {
+            "image": r"C:\Users\User\OneDrive\Pictures\project\bed2.jpg",
+            "name": "Emerald Deluxe",
+            "code": "R2",
+            "beds": 2,
+            "baths": 2,
+            "price": "RS 8000",
+            "description": "Spacious luxury with premium amenities"
+        },
+        {
+            "image": r"C:\Users\User\OneDrive\Pictures\project\bed3.jpg",
+            "name": "Ruby Executive",
+            "code": "R3",
+            "beds": 1,
+            "baths": 1,
+            "price": "RS 5500",
+            "description": "Elegant comfort for business travelers"
+        },
+        {
+            "image": r"C:\Users\User\OneDrive\Pictures\project\bed4.jpg",
+            "name": "Diamond Presidential",
+            "code": "R4",
+            "beds": 2,
+            "baths": 2,
+            "price": "RS 6524",
+            "description": "Our most luxurious accommodation"
+        },
+        {
+            "image": r"C:\Users\User\OneDrive\Pictures\project\bed5.jpg",
+            "name": "Pearl Family",
+            "code": "R5",
+            "beds": 3,
+            "baths": 2,
+            "price": "RS 7500",
+            "description": "Perfect for family getaways"
+        },
+        {
+            "image": r"C:\Users\User\OneDrive\Pictures\project\bed6.jpg",
+            "name": "The Glass Box",
+            "code": "R6",
+            "beds": 1,
+            "baths": 1,
+            "price": "RS 8,500",
+            "description": "Transparent sanctuary with panoramic views."
+        }
+    ]
+
+    # Create 2 rows of 3 images each
+    for i in range(6):
+        row = i // 3
+        col = i % 3
+        
+        # Create card frame
+        card_frame = tk.Frame(gallery_container, bg='white', bd=2, relief='groove', padx=10, pady=10)
+        card_frame.grid(row=row, column=col, padx=20, pady=20, sticky='nsew')
+        
+        try:
+            img = Image.open(room_data[i]["image"])
+            img = img.resize((400, 250), Image.Resampling.LANCZOS)
+            photo = ImageTk.PhotoImage(img)
+            img_label = tk.Label(card_frame, image=photo, bg='white')
+            img_label.image = photo
+            img_label.pack(pady=(0, 10))
+        except Exception as e:
+            print(f"Error loading image: {e}")
+            tk.Label(card_frame, text=f"Room {i+1}", width=40, height=10, bg='lightgray').pack(pady=(0, 10))
+        
+        # Room name and code
+        tk.Label(card_frame, 
+                text=f"{room_data[i]['name']}\nRoom Code: {room_data[i]['code']}", 
+                font=('Helvetica', 11, 'bold'), 
+                bg='white').pack()
+        
+        # Buttons
+        btn_frame = tk.Frame(card_frame, bg='white')
+        btn_frame.pack(pady=10)
+        ttk.Button(btn_frame, text="View Room", width=12,
+                command=lambda r=i: view_room(r)).pack(side='left', padx=5)
+
+    # Configure grid
+    for i in range(3):
+        gallery_container.grid_columnconfigure(i, weight=1)
+
+    def view_room(room_index):
+        """Show detailed room view"""
+        room = room_data[room_index]
+        detail_win = tb.Toplevel(rooms)
+        detail_win.title(f"{room['name']} - Details")
+        detail_win.geometry("600x700")
+        
+        # Main content frame
+        content_frame = tk.Frame(detail_win, padx=20, pady=20)
+        content_frame.pack(fill='both', expand=True)
+        
+        try:
+            img = Image.open(room["image"])
+            img = img.resize((500, 350), Image.Resampling.LANCZOS)
+            photo = ImageTk.PhotoImage(img)
+            img_label = tk.Label(content_frame, image=photo)
+            img_label.image = photo
+            img_label.pack(pady=10)
+        except:
+            tk.Label(content_frame, text="Room Image", width=60, height=20, bg='lightgray').pack(pady=10)
+        
+        # Room title
+        tk.Label(content_frame, 
+                text=room['name'], 
+                font=('Helvetica', 18, 'bold')).pack()
+        
+        # Room code
+        tk.Label(content_frame, 
+                text=f"Room Code: {room['code']}", 
+                font=('Helvetica', 12)).pack(pady=5)
+        
+        # Details frame
+        details_frame = tk.Frame(content_frame)
+        details_frame.pack(pady=10)
+        
+        # Specifications
+        tk.Label(details_frame, 
+                text=f"Beds: {room['beds']}\nBaths: {room['baths']}\nPrice: {room['price']}", 
+                font=('Helvetica', 12), 
+                justify='left').grid(row=0, column=0, sticky='w', padx=20)
+        
+        # Description
+        tk.Label(details_frame, 
+                text=room['description'], 
+                font=('Helvetica', 12), 
+                wraplength=300, 
+                justify='left').grid(row=0, column=1, sticky='w', padx=20)
+        
+       
+
+#==============BOOK NOW===============================================================================
+def open_booking_window():
+    # Create the booking window
+    booking_win = tk.Toplevel()
+    booking_win.title("Booking Window")
+    booking_win.state('zoomed')
+    
+    # Screen dimensions
+    screen_width = booking_win.winfo_screenwidth()
+    screen_height = booking_win.winfo_screenheight()
+
+
+    # Room/Hall codes and their prices (ADD THIS BLOCK)
+    room_prices = {
+        "R1": 4800, "R2": 8000, "R3": 5500, "R4": 6524, "R5": 7500, "R6": 8500,
+        "H1": 40000, "H2": 35000, "H3": 30000,
+        "W1": 35000, "W2": 42000, "W3": 50000,
+        "B1": 25000, "B2": 35000, "B3": 45000
+    }
+
+    # Create a canvas that will cover the entire window
+    canvas = tk.Canvas(booking_win, width=screen_width, height=screen_height)
+    canvas.pack(fill='both', expand=True)
+
+    # Try to load and display the background image
+    try:
+        bg_image = Image.open(r"C:\Users\User\OneDrive\Pictures\project\reservation.png").resize((screen_width, screen_height), Image.Resampling.LANCZOS)
+        bg_photo = ImageTk.PhotoImage(bg_image)
+        canvas.create_image(0, 0, image=bg_photo, anchor='nw')
+        canvas.image = bg_photo  # Keep a reference to prevent garbage collection
+    except FileNotFoundError:
+        canvas.create_text(screen_width//2, screen_height//2, text="Image not found", font=('Arial', 24), fill='black')
+
+    # Create a frame for the form content that will sit on top of the background
+    form_frame = tk.Frame(canvas, bg='white', bd=2, relief='solid')
+    canvas.create_window(screen_width//2, screen_height//2, window=form_frame, anchor='center')
+
+    # Main container inside the form frame
+    main_container = tk.Frame(form_frame, bg='white')
+    main_container.pack(pady=20, padx=20)
+
+    # Title
+    tk.Label(main_container, 
+            text="PLATINUM COURT", 
+            font=('Segoe UI', 18, 'bold'), 
+            bg='white').pack(pady=(10, 20))
+
+    # Form frame
+    inner_form_frame = tk.Frame(main_container, bg='white')
+    inner_form_frame.pack()
+
+    # Field definitions
+    fields = [
+        # (label_text, field_name, width, column, validation_func)
+        ("Name:", "name", 25, "left", lambda x: "" if x.strip() else "Please enter name"),
+        ("CNIC:", "cnic", 25, "left", lambda x: "" if re.match(r'^\d{5}-\d{7}-\d{1}$', x) else "Format: 12345-1234567-1"),
+        ("Room/Hall Code:", "room_code", 25, "left", lambda x: "" if x.strip().upper() in room_prices else "Invalid code - enter valid code"),
+        ("Email:", "email", 25, "right", lambda x: "" if re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', x) else "Format: abc@example.com"),
+        ("Contact:", "contact", 25, "right", lambda x: "" if x.isdigit() and len(x)==11 else "Exactly 11 digits"),
+        ("No. of Individuals:", "individuals", 25, "right", lambda x: "" if x.isdigit() and int(x)>0 else "Positive number"),
+        ("Days of Stay:", "days_stay", 15, "bottom", lambda x: "" if x.isdigit() and int(x)>0 else "Positive number")
+    ]
+
+    # Create containers
+    left_column = tk.Frame(inner_form_frame, bg='white')
+    left_column.grid(row=0, column=0, padx=20)
+    right_column = tk.Frame(inner_form_frame, bg='white')
+    right_column.grid(row=0, column=1, padx=20)
+    bottom_row = tk.Frame(inner_form_frame, bg='white')
+    bottom_row.grid(row=1, column=0, columnspan=2, pady=10)
+
+    # Store all widgets and variables
+    entry_vars = {}
+    error_vars = {}
+    entry_widgets = {}
+
+    # Create all fields
+    for label_text, field_name, width, column, _ in fields:
+        parent = left_column if column == "left" else right_column if column == "right" else bottom_row
+        
+        # Label
+        tk.Label(parent, text=label_text, font=('Segoe UI', 12), bg='white'
+               ).pack(side='left' if column == "bottom" else 'top', 
+                      padx=5, pady=5, anchor='e' if column != "bottom" else 'w')
+        
+        # Entry field
+        entry_vars[field_name] = tk.StringVar()
+        entry = tk.Entry(parent, width=width, font=('Segoe UI', 11),
+                        textvariable=entry_vars[field_name], fg='black',
+                        borderwidth=2, relief='solid')
+        entry.pack(side='left' if column == "bottom" else 'top', 
+                  padx=5, pady=5, anchor='w')
+        entry_widgets[field_name] = entry
+        
+        # Error label
+        error_vars[field_name] = tk.StringVar()
+        tk.Label(parent, textvariable=error_vars[field_name],
+                fg='red', font=('Segoe UI', 9), bg='white'
+               ).pack(side='left' if column == "bottom" else 'top', 
+                      padx=5, pady=0, anchor='w')
+
+    def open_payment_window():
+        payment_win = tk.Toplevel(booking_win)
+        payment_win.title("Payment Method")
+        payment_win.geometry("400x300")
+        
+        # Payment method selection
+        tk.Label(payment_win, text="Select Payment Method:", font=('Segoe UI', 12)).pack(pady=10)
+        
+        payment_var = tk.StringVar(value="")
+        
+        # Payment options
+        jazzcash = tk.Radiobutton(payment_win, text="JazzCash", variable=payment_var, value="jazzcash", font=('Segoe UI', 11))
+        jazzcash.pack(anchor='w', padx=50, pady=5)
+        
+        easypaisa = tk.Radiobutton(payment_win, text="EasyPaisa", variable=payment_var, value="easypaisa", font=('Segoe UI', 11))
+        easypaisa.pack(anchor='w', padx=50, pady=5)
+        
+        card = tk.Radiobutton(payment_win, text="Credit/Debit Card", variable=payment_var, value="card", font=('Segoe UI', 11))
+        card.pack(anchor='w', padx=50, pady=5)
+        
+        # Payment details frame (will be populated based on selection)
+        details_frame = tk.Frame(payment_win)
+        details_frame.pack(pady=10)
+        
+        def show_payment_fields():
+            # Clear previous fields
+            for widget in details_frame.winfo_children():
+                widget.destroy()
+            
+            method = payment_var.get()
+            
+            if method == "jazzcash" or method == "easypaisa":
+                tk.Label(details_frame, text=f"Enter {method.capitalize()} Phone Number:", font=('Segoe UI', 11)).pack()
+                tk.Entry(details_frame, font=('Segoe UI', 11), width=25).pack(pady=5)
+            elif method == "card":
+                tk.Label(details_frame, text="Card Number (16 digits):", font=('Segoe UI', 11)).pack()
+                tk.Entry(details_frame, font=('Segoe UI', 11), width=25).pack(pady=5)
+                tk.Label(details_frame, text="Security Code (4 digits):", font=('Segoe UI', 11)).pack()
+                tk.Entry(details_frame, font=('Segoe UI', 11), width=10).pack(pady=5)
+        
+        # Show fields when payment method is selected
+        payment_var.trace('w', lambda *args: show_payment_fields())
+        
+        def process_payment():
+            method = payment_var.get()
+            if not method:
+                messagebox.showerror("Error", "Please select a payment method", parent=payment_win)
+                return
+            
+            # Calculate total bill (5000 per day)
+            days = int(entry_vars["days_stay"].get())
+            total_bill = 5000 * days
+            
+            # Generate receipt
+            receipt_win = tk.Toplevel(payment_win)
+            receipt_win.title("Booking Receipt")
+            receipt_win.geometry("500x600")
+            
+            # Receipt content
+            receipt_text = f"""
+            PLATINUM COURT - BOOKING RECEIPT
+            {'='*40}
+            
+            Guest Information:
+            Name: {entry_vars["name"].get()}
+            CNIC: {entry_vars["cnic"].get()}
+            Contact: {entry_vars["contact"].get()}
+            Email: {entry_vars["email"].get()}
+            
+            Booking Details:
+            Room/Hall Code: {entry_vars["room_code"].get()}
+            Number of Individuals: {entry_vars["individuals"].get()}
+            Days of Stay: {days}
+            
+            Payment Information:
+            Method: {method.capitalize()}
+            Total Amount: Rs. {total_bill:,}
+            
+            {'='*40}
+            Thank you for your booking!
+            """
+            
+            tk.Label(receipt_win, text="BOOKING RECEIPT", font=('Segoe UI', 16, 'bold')).pack(pady=10)
+            tk.Label(receipt_win, text=receipt_text, font=('Courier New', 12), justify='left').pack(pady=10, padx=20)
+            
+            # Print button (would need actual printer setup to work)
+            print_btn = tk.Button(receipt_win, text="Print Receipt", 
+                                command=lambda: print_receipt(receipt_text),
+                                font=('Segoe UI', 12), bg='#4CAF50', fg='white')
+            print_btn.pack(pady=10)
+            
+            payment_win.destroy()
+            booking_win.destroy()
+        
+        # Submit button
+        submit_btn = tk.Button(payment_win, text="Submit Payment", 
+                             command=process_payment,
+                             font=('Segoe UI', 12), bg='#a0522d', fg='white')
+        submit_btn.pack(pady=20)
+    
+    def print_receipt(receipt_text):
+        # This would need to be implemented with actual printer setup
+        print("Printing receipt...")
+        print(receipt_text)
+        messagebox.showinfo("Print", "Receipt sent to printer", parent=booking_win)
+
+    def validate_all():
+        has_errors = False
+        first_error = None
+        
+        # Clear previous errors
+        for field in error_vars.values():
+            field.set("")
+        
+        # Validate each field
+        for label_text, field_name, _, _, validator in fields:
+            value = entry_vars[field_name].get()
+            error = validator(value)
+            
+            if error:
+                error_vars[field_name].set(error)
+                has_errors = True
+                if first_error is None:  # Remember first error for focus
+                    first_error = field_name
+        
+        if has_errors:
+            # Show error summary
+            messagebox.showerror(
+                "Validation Errors",
+                "Please correct the highlighted fields",
+                parent=booking_win
+            )
+            # Focus on first error field
+            if first_error in entry_widgets:
+                entry_widgets[first_error].focus_set()
+                entry_widgets[first_error].select_range(0, tk.END)
+        else:
+            # All valid - open payment window
+            open_payment_window()
+
+
+    def open_payment_window():
+        payment_win = tk.Toplevel(booking_win)
+        payment_win.title("Payment Method")
+        payment_win.geometry("400x300")
+        
+        # Payment method selection
+        tk.Label(payment_win, text="Select Payment Method:", font=('Segoe UI', 12)).pack(pady=10)
+        
+        payment_var = tk.StringVar(value="")
+        
+        # Payment options
+        jazzcash = tk.Radiobutton(payment_win, text="JazzCash", variable=payment_var, value="jazzcash", font=('Segoe UI', 11))
+        jazzcash.pack(anchor='w', padx=50, pady=5)
+        
+        easypaisa = tk.Radiobutton(payment_win, text="EasyPaisa", variable=payment_var, value="easypaisa", font=('Segoe UI', 11))
+        easypaisa.pack(anchor='w', padx=50, pady=5)
+        
+        card = tk.Radiobutton(payment_win, text="Credit/Debit Card", variable=payment_var, value="card", font=('Segoe UI', 11))
+        card.pack(anchor='w', padx=50, pady=5)
+        
+        # Payment details frame
+        details_frame = tk.Frame(payment_win)
+        details_frame.pack(pady=10)
+        
+        # Store payment details
+        payment_details = {
+            "phone_entry": None,
+            "card_entry": None,
+            "security_entry": None
+        }
+        
+        def show_payment_fields():
+            for widget in details_frame.winfo_children():
+                widget.destroy()
+            
+            method = payment_var.get()
+            
+            if method in ["jazzcash", "easypaisa"]:
+                tk.Label(details_frame, text=f"Enter {method.capitalize()} Phone Number:", font=('Segoe UI', 11)).pack()
+                payment_details["phone_entry"] = tk.Entry(details_frame, font=('Segoe UI', 11), width=25)
+                payment_details["phone_entry"].pack(pady=5)
+            elif method == "card":
+                tk.Label(details_frame, text="Card Number (16 digits):", font=('Segoe UI', 11)).pack()
+                payment_details["card_entry"] = tk.Entry(details_frame, font=('Segoe UI', 11), width=25)
+                payment_details["card_entry"].pack(pady=5)
+                tk.Label(details_frame, text="Security Code (4 digits):", font=('Segoe UI', 11)).pack()
+                payment_details["security_entry"] = tk.Entry(details_frame, font=('Segoe UI', 11), width=10)
+                payment_details["security_entry"].pack(pady=5)
+        
+        payment_var.trace('w', lambda *args: show_payment_fields())
+        
+        def show_receipt():
+            method = payment_var.get()
+            if not method:
+                messagebox.showerror("Error", "Please select a payment method", parent=payment_win)
+                return
+            
+            # Validate payment details
+            if method in ["jazzcash", "easypaisa"]:
+                phone = payment_details["phone_entry"].get()
+                if not (phone.isdigit() and len(phone) == 11):
+                    messagebox.showerror("Error", "Please enter a valid 11-digit phone number", parent=payment_win)
+                    return
+            elif method == "card":
+                card_num = payment_details["card_entry"].get()
+                security = payment_details["security_entry"].get()
+                if not (card_num.isdigit() and len(card_num) == 16):
+                    messagebox.showerror("Error", "Please enter a valid 16-digit card number", parent=payment_win)
+                    return
+                if not (security.isdigit() and len(security) == 4):
+                    messagebox.showerror("Error", "Please enter a valid 4-digit security code", parent=payment_win)
+                    return
+            
+            # Calculate total bill
+                        # Calculate total bill based on room code (REPLACE THIS BLOCK)
+            room_code = entry_vars["room_code"].get().upper()
+            if room_code not in room_prices:
+                messagebox.showerror("Error", "Invalid room/hall code", parent=payment_win)
+                return
+                
+            daily_rate = room_prices[room_code]
+            days = int(entry_vars["days_stay"].get())
+            total_bill = daily_rate * days
+            
+            
+            # Create receipt window with background image
+            receipt_win = tk.Toplevel(payment_win)
+            receipt_win.title("Booking Receipt")
+            receipt_win.geometry("500x600")
+            
+            # Receipt content
+            receipt_text = f"""
+            PLATINUM COURT - BOOKING RECEIPT
+            {'='*40}
+            
+            Guest Information:
+            Name: {entry_vars["name"].get()}
+            CNIC: {entry_vars["cnic"].get()}
+            Contact: {entry_vars["contact"].get()}
+            Email: {entry_vars["email"].get()}
+            
+            Booking Details:
+            Room/Hall Code: {room_code}
+            Number of Individuals: {entry_vars["individuals"].get()}
+            Days of Stay: {days}
+            Daily Rate: Rs. {daily_rate:,}
+            Total Amount: Rs. {total_bill:,}
+            
+            Payment Information:
+            Method: {method.capitalize()}
+            {'Phone: ' + payment_details["phone_entry"].get() if method in ["jazzcash", "easypaisa"] else ''}
+            {'Card: ' + payment_details["card_entry"].get()[-4:].rjust(16, '*') if method == "card" else ''}
+            
+            {'='*40}
+            Thank you for your booking!
+            """
+    
+            
+            # Display receipt
+            receipt_frame = tk.Frame(receipt_win)
+            receipt_frame.pack(fill='both', expand=True, padx=20, pady=20)
+
+            tk.Label(receipt_frame, text="BOOKING RECEIPT", font=('Segoe UI', 16, 'bold')).pack(pady=10)
+            tk.Label(receipt_frame, text=receipt_text, font=('Courier New', 12), justify='left').pack(pady=10)
+            
+            # Close all windows button
+            close_btn = tk.Button(receipt_frame, text="Close", 
+                                command=lambda: [receipt_win.destroy(), payment_win.destroy(), booking_win.destroy()],
+                                font=('Segoe UI', 12), bg='#a0522d', fg='white')
+            close_btn.pack(pady=20)
+        
+        # Confirm Payment button
+        confirm_btn = tk.Button(payment_win, text="Confirm Payment", 
+                              command=show_receipt,
+                              font=('Segoe UI', 12), bg='#a0522d', fg='white')
+        confirm_btn.pack(pady=20)
+
+    # [Rest of the code remains exactly the same]
+
+
+    # Reserve Button
+    reserve_btn = tk.Button(
+        main_container,
+        text="Reserve",
+        font=('Segoe UI', 12, 'bold'),
+        bg='#a0522d',
+        fg='white',
+        command=validate_all
+    )
+    reserve_btn.pack(pady=20)
+
+    # Keep window on top
+    booking_win.grab_set()
+
+
+
+
+
+
+    #=========================ABOUT US ==============================================================================================
+def open_about_us_window():
+    us = tb.Toplevel()
+    us.title("RESERVATION ")
+    us.state('zoomed')
+
+    # Load background image
+    bg_path = r"C:\Users\User\OneDrive\Pictures\project\\us.png"
+    bg_image = Image.open(bg_path)
+    screen_width = us.winfo_screenwidth()
+    screen_height = us.winfo_screenheight()
+    bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
+    bg_photo = ImageTk.PhotoImage(bg_image)
+
+    bg_label = tk.Label(us, image=bg_photo)
+    bg_label.image = bg_photo
+    bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+    # Navbar Frame
+    navbar = tk.Frame(us, bg='white')
+    navbar.place(relx=0, rely=0, relwidth=1)
+
+    # Navigation Buttons
+    def show_frame(frame):
+        for f in ( about_content, book_content):
+            f.place_forget()
+        frame.place(relx=0.3, rely=0.2, relwidth=0.6, relheight=0.7)
+
+    # ====== CREATE CONTENT FRAMES ======
+    about_content = tk.Frame(us, bg='white')
+    book_content = tk.Frame(us, bg='white')
+
+    # NAVIGation
+    ttk.Button(navbar, text="ABOUT US", command=open_about_us_window).pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="BOOK NOW 🔔", command=open_booking_window).pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="03234324254📞").pack(side='left', padx=10, pady=10)
+    ttk.Button(navbar, text="platinum.court@gmail.com").pack(side='left', padx=10, pady=10)
+
+    # Dropdown Menu with simulated nested submenu
+    def show_dropdown(event):
+        menu = tk.Menu(navbar, tearoff=0, bg='white', fg='black')
+
+        # Submenu for "Meetings and Events"
+        sub_menu = tk.Menu(menu, tearoff=0, bg='white', fg='black')
+        sub_menu.add_command(label="Birthday", command=open_birthday_window)
+        sub_menu.add_command(label="Board Meeting", command=open_board_room_window)
+        sub_menu.add_command(label="Wedding", command=open_wedding_window)
+
+        menu.add_cascade(label="Meetings and Events", menu=sub_menu)
+        menu.add_command(label="Restaurant", command=open_Restraunt)
+        menu.add_command(label="Laundery", command=open_laundary)
+        
+        menu.post(event.x_root, event.y_root)
+
+    dropdown_btn = ttk.Button(navbar, text="SERVICES")
+    dropdown_btn.pack(side='left', padx=10, pady=10)
+    dropdown_btn.bind("<Button-1>", show_dropdown)
+    title_label = tk.Label(us, text="ABOUT US", 
+                           font=('Helvetica', 28, 'bold'), bg='white', fg='#a0522d')
+    title_label.place(relx=0.25, rely=0.07)
+    # ===== GALLERY SECTION =====
+    gallery_frame = tk.Frame(us, bg='white')
+    gallery_frame.place(relx=0.1, rely=0.15, relwidth=0.4, relheight=0.60)  # Adjusted position
+
+    # Define image specifications
+    image_specs = [
+        {"path": r"C:\Users\User\OneDrive\Pictures\project\pic1.jpg", "size": (600, 500)},
+        {"path": r"C:\Users\User\OneDrive\Pictures\project\pic2.jpg", "size": (600, 600)},
+        {"path": r"C:\Users\User\OneDrive\Pictures\project\pic3.jpg", "size": (600, 700)},
+        {"path": r"C:\Users\User\OneDrive\Pictures\project\pic4.jpg", "size": (600, 700)},
+        {"path": r"C:\Users\User\OneDrive\Pictures\project\pic5.jpg", "size": (600, 700)},
+        {"path": r"C:\Users\User\OneDrive\Pictures\project\pic6.jpg", "size": (600, 700)},
+        {"path": r"C:\Users\User\OneDrive\Pictures\project\pic7.jpg", "size": (600, 700)},
+        {"path": r"C:\Users\User\OneDrive\Pictures\project\pic8.jpg", "size": (600, 700)},
+        
+    ]
+
+    # Create a canvas with scrollbar for gallery
+    canvas = tk.Canvas(gallery_frame, bg='white')
+    scrollbar = tk.Scrollbar(gallery_frame, orient='vertical', command=canvas.yview)
+    scrollable_frame = tk.Frame(canvas, bg='white')
+
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")))
+    
+
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+
+    # Create vertical layout for images with consistent styling
+    for spec in image_specs:
+        # Create image container frame
+        img_container = tk.Frame(scrollable_frame, bg='white', padx=20, pady=15)
+        img_container.pack(fill='x')
+        
+        try:
+            # Load and resize image with antialiasing
+            img = Image.open(spec["path"])
+            img.thumbnail(spec["size"], Image.Resampling.LANCZOS)  # Maintains aspect ratio
+            photo = ImageTk.PhotoImage(img)
+            
+            # Display image with border
+            img_label = tk.Label(img_container, image=photo, bg='white', 
+                            bd=1, relief='solid')
+            img_label.image = photo
+            img_label.pack()
+            
+        except Exception as e:
+            print(f"Error loading image {spec['path']}: {e}")
+            # Elegant placeholder
+            placeholder = tk.Label(img_container, 
+                                text=f"Image not available\n({spec['size'][0]}x{spec['size'][1]})",
+                                font=('Helvetica', 10),
+                                bg='white', fg='gray',
+                                width=30, height=10,
+                                bd=1, relief='solid')
+            placeholder.pack()
+
+
+
+   #==============================================MAIN PAGE=================================================================================
+# Main application window
+def show_main_window():
+    main = tb.Window(themename='litera')
+    main.title("Platinum Court Hotel")
+    main.state('zoomed')    
+    main.configure(bg=BG_COLOR)
+
+    # Background image
+    bg_path = r"C:\Users\User\OneDrive\Pictures\project\platinum court.jpg"
+    try:
+        screen_width = main.winfo_screenwidth()
+        screen_height = main.winfo_screenheight()
+        bg_image = Image.open(bg_path)
+        bg_image = bg_image.resize((screen_width, screen_height), Image.Resampling.LANCZOS)
+        bg_photo = ImageTk.PhotoImage(bg_image)
+        bg_label = tk.Label(main, image=bg_photo)
+        bg_label.image = bg_photo
+        bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        bg_label.lower()
+    except FileNotFoundError:
+        print("Background image not found, using solid color")
+        main.configure(bg=BG_COLOR)
+
+    # ===================== MAIN NAVBAR WITH DROPDOWN =====================
+    navbar = tk.Frame(main, bg=NAV_COLOR, height=80)
+    navbar.pack(fill='x')
+    navbar.columnconfigure(0, weight=1)
+    navbar.columnconfigure(1, weight=1)
+    navbar.columnconfigure(2, weight=1)
+
+    phone_label = tk.Label(navbar, text="The Platinum Court",
+                           font=('Arial', 14,'bold'), bg=NAV_COLOR, fg=TEXT_COLOR)
+    phone_label.grid(row=0, column=0, sticky='w', padx=30)
+
+    logo_path = r"C:\Users\User\OneDrive\Pictures\project\\logo.jpg"
+    try:
+        logo_image = Image.open(logo_path).resize((60, 60), Image.Resampling.LANCZOS)
+        logo_photo = ImageTk.PhotoImage(logo_image)
+        logo_label = tk.Label(navbar, image=logo_photo, bg=NAV_COLOR)
+        logo_label.image = logo_photo
+        logo_label.grid(row=0, column=1)
+    except FileNotFoundError:
+        print("Logo image not found")
+        logo_label = tk.Label(navbar, text="Platinum Court",
+                              font=('Arial', 16, 'bold'), bg=NAV_COLOR, fg=ACCENT_COLOR)
+        logo_label.grid(row=0, column=1)
+
+    btn_frame = tk.Frame(navbar, bg=NAV_COLOR)
+    btn_frame.grid(row=0, column=2, sticky='e', padx=30)
+
+    style = ttk.Style()
+    style.configure('Transparent.TButton',
+                    font=('Arial', 20),
+                    foreground=TEXT_COLOR,
+                    background=BTN_COLOR,
+                    bordercolor=BTN_COLOR,
+                    focuscolor=BTN_COLOR,
+                    padding=10,
+                    relief='flat')
+    style.map('Transparent.TButton',
+              background=[('active', NAV_COLOR)],
+              foreground=[('active', ACCENT_COLOR)])
+    style.configure('BookNow.TButton',
+                    font=('Arial', 18, 'bold'),
+                    foreground='white',
+                    background=BOOK_NOW_COLOR,
+                    bordercolor=BOOK_NOW_COLOR,
+                    padding=15,
+                    relief='flat')
+    style.map('BookNow.TButton',
+              background=[('active', '#3cb371')],
+              foreground=[('active', 'white')])
+
+    buttons = ['ABOUT US', 'ROOMS VIEW', 'SERVICES', '032232455454 📞','BOOK NOW 🔔']
+    for text in buttons:
+        if text == 'SERVICES':
+            services_btn = ttk.Button(btn_frame, text=text, style='Transparent.TButton')
+            services_btn.pack(side='left', padx=5)
+            services_btn.bind('<Enter>', lambda e, b=services_btn: create_services_dropdown(b))
+        else:
+            if text == 'ROOMS VIEW':
+              btn = ttk.Button(btn_frame, text=text, style='Transparent.TButton',
+                            command=open_rooms_window)
+            elif text == 'BOOK NOW 🔔':
+             btn = ttk.Button(btn_frame, text=text, style='BookNow.TButton',
+                            command=lambda: open_booking_window())
+            elif text == 'ABOUT US':
+             btn = ttk.Button(btn_frame, text=text, style='BookNow.TButton',
+                            command=open_about_us_window)
+
+                            
+            else:
+             btn = ttk.Button(btn_frame, text=text, style='Transparent.TButton')
+        btn.pack(side='left', padx=5)
+
+    # ===================== END MAIN NAVBAR =====================
+
+    main.mainloop()
+
+# Splash screen
+splash = tb.Window(themename='litera')
+splash.title("Platinum Court Hotel")
+splash.attributes('-fullscreen', True)
+splash.configure(bg=BG_COLOR)
+
+# Splash logo
+logo_path = r"C:\Users\User\OneDrive\Pictures\project\logo.jpg"
+try:
+    logo_image = Image.open(logo_path).resize((200, 200), Image.Resampling.LANCZOS)
+    logo_photo = ImageTk.PhotoImage(logo_image)
+    logo_label = tk.Label(splash, image=logo_photo, bg=BG_COLOR)
+    logo_label.image = logo_photo
+    logo_label.place(relx=0.5, rely=0.5, anchor='center')
+except FileNotFoundError:
+    print("Splash logo not found")
+    logo_label = tk.Label(splash, text="Platinum Court Hotel",
+                          font=('Arial', 32), bg=BG_COLOR, fg='white')
+    logo_label.place(relx=0.5, rely=0.5, anchor='center')
+
+# Start transition
+splash.after(2000, _go_to_main_window)
+splash.mainloop()
+
+
+
+
+
+
+
+
+
+
+
+
